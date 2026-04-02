@@ -1,0 +1,48 @@
+from limits import storage, limits, strategies, parse
+from .config import TomlConfig
+
+class Limiter:
+    def __init__(self, config):
+        self.config = config
+        self.field = self.config.field
+        self.default_limit = self.config.default_limit
+        self.limits = self.config.limits
+        self.counters = {}
+
+        self.storage = storage.storage_from_string(self.config.storage)
+
+        if self.config.strategy == 'fixed-window':
+            self.strategy = strategies.FixedWindowRateLimiter(self.storage)
+        else:            
+            raise ValueError(f"Unsupported strategy type: {self.config.strategy}")
+
+        # init limiters for all configured keys
+        for key, limit_info in self.limits.items():
+            print(f"Configuring limiter for {key}: {limit_info}")
+            self.counters[key] = parse(limit_info)
+
+        # syntax check: create default limiter for keys not explicitly configured
+        _ = parse(self.default_limit)
+
+    def check(self, key: str):
+
+        if key not in self.counters:
+            print("make new limiter for key", key)
+            self.counters[key] = parse(self.default_limit)
+
+
+        limit = self.counters[key]
+        print(f"Checking limiter for {key}: limit={limit}")
+
+
+        print(f"test limiter for {key}: {limit} with strategy {self.strategy}")
+        if self.strategy.test(limit, key):
+            self.strategy.hit(limit, key)
+            return True
+        
+        return False
+
+    def dump(self):
+        print("Limits:")
+        for key, limiter in self.counters.items():
+            print(f"  {key}: {limiter}")

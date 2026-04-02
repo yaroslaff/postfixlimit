@@ -11,6 +11,8 @@ dynamic = [ "version" ]
 keywords = [ "postfix", "policy", "limit", "ratelimit", "rate", "spam", "antispam", "anti-spam", "sasl", "ip", "sender" ]
 
 dependencies = [
+    'toml >= 0.10.0',
+    'limits >= 5.8.0'
 ]
 authors = [
   { name="Yaroslav Polyakov", email="yaroslaff@gmail.com" },

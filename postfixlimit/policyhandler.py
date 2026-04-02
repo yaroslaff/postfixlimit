@@ -1,8 +1,14 @@
 import socketserver
 import logging
 
+from .limiter import Limiter
+
 class PolicyHandler(socketserver.StreamRequestHandler):
     logger: logging.Logger = logging.getLogger("postfixlimit")
+
+    @classmethod
+    def configure_limiter(cls, limiter: Limiter):
+        cls.limiter = limiter
 
     @classmethod
     def configure_logger(cls, log_file=None, verbosity=1):
@@ -20,7 +26,7 @@ class PolicyHandler(socketserver.StreamRequestHandler):
             handler = logging.StreamHandler()
 
         handler.setLevel(level)
-        handler.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(message)s"))
+        handler.setFormatter(logging.Formatter("%(asctime)s %(message)s"))
         logger.addHandler(handler)
 
         cls.logger = logger
@@ -48,5 +54,10 @@ class PolicyHandler(socketserver.StreamRequestHandler):
         size = int(attrs.get("size", 0))
 
         self.logger.debug(f"check_policy: sender={sender!r}, size={size}")
-        return "DUNNO"
+
+        if self.limiter.check(sender):
+            return "DUNNO"
+
+        # not allowed
+        return "REJECT Too many emails sent, please try again later"
 
