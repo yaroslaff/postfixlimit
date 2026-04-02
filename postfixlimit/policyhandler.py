@@ -1,8 +1,11 @@
-import socketserver
 import logging
+import socketserver
+import time
 
 from .limiter import Limiter
+from .config import TomlConfig
 from .exceptions import LimitExceeded
+from .singleton import Singleton
 
 class PolicyHandler(socketserver.StreamRequestHandler):
     logger: logging.Logger = logging.getLogger("postfixlimit")
@@ -10,6 +13,14 @@ class PolicyHandler(socketserver.StreamRequestHandler):
     @classmethod
     def configure_limiter(cls, limiter: Limiter):
         cls.limiter = limiter
+
+    @classmethod
+    def configure_config(cls, config: TomlConfig):
+        cls.config = config
+
+    def setup(self):
+        super().setup()
+        self.singleton = Singleton()
 
     @classmethod
     def configure_logger(cls, log_file=None, verbosity=1):
@@ -36,9 +47,13 @@ class PolicyHandler(socketserver.StreamRequestHandler):
     def handle(self):
         attrs = {}
 
+
         for line in self.rfile:
             line = line.decode().strip()
             if not line:
+                self.singleton.counter += 1
+                print("counter", self.singleton.counter)
+
                 if self.verbosity >= 2:
                     self.logger.info(f"all attrs: {attrs}")
                 action = self.check_policy(attrs)
@@ -46,6 +61,11 @@ class PolicyHandler(socketserver.StreamRequestHandler):
                                  f" (SASL:{attrs.get('sasl_username')!r} client:{attrs.get('client_address')!r} sz:{attrs.get('size')}): {action}")
                 self.wfile.write(f"action={action}\n\n".encode())
                 attrs = {}
+
+                if self.config.dump_period > 0 and time.time() >= self.singleton.last_dump + self.config.dump_period:
+                    self.singleton.last_dump = time.time()
+                    self.limiter.dump()
+
             elif "=" in line:
                 k, v = line.split("=", 1)
                 attrs[k] = v
@@ -62,4 +82,5 @@ class PolicyHandler(socketserver.StreamRequestHandler):
         except LimitExceeded as e:
             # not allowed
             return e.postfix_response()
+        
 

@@ -12,7 +12,8 @@ keywords = [ "postfix", "policy", "limit", "ratelimit", "rate", "spam", "antispa
 
 dependencies = [
     'toml >= 0.10.0',
-    'limits >= 5.8.0'
+    'limits >= 5.8.0',
+    'redis >= 7.4.0'
 ]
 authors = [
   { name="Yaroslav Polyakov", email="yaroslaff@gmail.com" },

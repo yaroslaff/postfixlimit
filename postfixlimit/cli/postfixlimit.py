@@ -6,22 +6,17 @@ from ..config import TomlConfig
 from ..limiter import Limiter
 
 def get_args():
-    def_port = 4455
-    def_addr = "localhost"
     def_config = "/etc/postfixlimit.conf"
     parser = argparse.ArgumentParser("Simple Postfix Limiter (policy service)")
-    parser.add_argument("--port", "-p", type=int, default=def_port,
-                        help=f"Listen this port (def: {def_port})")
-    parser.add_argument("--address", "-a", type=str, default=def_addr,
-                        help=f"Listen this address (def: {def_addr})")
+    parser.add_argument("--port", "-p", type=int, default=None,
+                        help=f"Listen this port")
+    parser.add_argument("--address", "-a", type=str, default=None,
+                        help=f"Listen this address")
     parser.add_argument("--config", "-c", type=str, default=def_config,
                         help=f"Read this config (def: {def_config})")
-    parser.add_argument("--daemon", "-d", action='store_true', default=False,
-                        help=f"Run as daemon")
     parser.add_argument("-v", "--verbosity", type=int, choices=[0, 1, 2], default=1,
                         help="Verbosity level: 0=warning, 1=info, 2=debug+all attrs (default 1)")
-    parser.add_argument("-l", "--log", dest="log_file", default=None,
-                        help="Log output file path (default=stderr)")
+    parser.add_argument("--reset", type=str, metavar="KEY", help="Reset counters for this key (e.g., email address) and exit")
 
     return parser.parse_args()
 
@@ -29,24 +24,40 @@ def get_args():
 def main():
     args = get_args()
 
+
     print(f"Loading config from {args.config}")
     config = TomlConfig(args.config)
+
+    if args.port is not None:
+        config.port = args.port
+    if args.address is not None:
+        config.address = args.address
+
     print(config)
 
     limiter = Limiter(config)
     limiter.dump()
 
-    PolicyHandler.configure_logger(log_file=args.log_file, verbosity=args.verbosity)
+    PolicyHandler.configure_config(config)
+    PolicyHandler.configure_logger(log_file=config.log_file, verbosity=args.verbosity)
     PolicyHandler.configure_limiter(limiter)
+
+    if args.reset:
+        print(f"Resetting counters for {args.reset}")
+        limiter.reset(args.reset)
+        limiter.dump()
+        return
+
+
     try:
         socketserver.ThreadingTCPServer.allow_reuse_address = True
-        server = socketserver.ThreadingTCPServer((args.address, args.port), PolicyHandler)
+        server = socketserver.ThreadingTCPServer((config.address, config.port), PolicyHandler)
     except OSError as e:
-        print(f"Error starting server on {args.address}:{args.port}: {e}")
+        print(f"Error starting server on {config.address}:{config.port}: {e}")
         return
     
     # server.allow_reuse_address = True
-    print(f"Postfix policy server listening on {args.address}:{args.port} (verbosity={args.verbosity}, log_file={args.log_file})")
+    print(f"Postfix policy server listening on {config.address}:{config.port} (verbosity={args.verbosity}, log_file={config.log_file})")
     try:
         server.serve_forever()
     except KeyboardInterrupt:

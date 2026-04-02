@@ -1,3 +1,5 @@
+import time
+
 from limits import storage, limits, strategies, parse
 from .config import TomlConfig
 from .exceptions import LimitExceeded
@@ -27,6 +29,8 @@ class Limiter:
 
     def check(self, key: str):
 
+        print("CHECK", id(self), key)
+
         if key not in self.counters:
             print("make new limiter for key", key)
             self.counters[key] = parse(self.default_limit)
@@ -39,11 +43,13 @@ class Limiter:
         else:
             msg = self.config.action_text.format(limit=str(limit), field=self.field, key=key)
             raise LimitExceeded(action=self.config.action, 
-                                code=self.config.action_code, 
                                 message=msg)
 
     def dump(self):
         print("Limits:")
         for key, limiter in self.counters.items():
-            print(f"  {key}: {limiter}")
-            
+            window = self.strategy.get_window_stats(limiter, key)
+            print(f"  {key}: {limiter} remaining: {window.remaining}")
+    
+    def reset(self, sender: str):
+        pass
