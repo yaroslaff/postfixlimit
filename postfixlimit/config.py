@@ -33,6 +33,9 @@ class TomlConfig:
         self.default_limit = self.config.get('default_limit', '10/hour')
         self.storage = self.config.get('storage', 'memory://')
         self.strategy = self.config.get('strategy', 'fixed-window')
+        self.action = self.config.get('action', 'DEFER')
+        self.action_code = self.config.get('action_code', 452)
+        self.action_text = self.config.get('action_text', '4.5.3 Limit ({limit}) exceeded for {field}={key}')
 
         # Parse per-field limits
         self.limits = {}

@@ -1,5 +1,6 @@
 from limits import storage, limits, strategies, parse
 from .config import TomlConfig
+from .exceptions import LimitExceeded
 
 class Limiter:
     def __init__(self, config):
@@ -30,19 +31,19 @@ class Limiter:
             print("make new limiter for key", key)
             self.counters[key] = parse(self.default_limit)
 
-
         limit = self.counters[key]
-        print(f"Checking limiter for {key}: limit={limit}")
 
-
-        print(f"test limiter for {key}: {limit} with strategy {self.strategy}")
         if self.strategy.test(limit, key):
             self.strategy.hit(limit, key)
             return True
-        
-        return False
+        else:
+            msg = self.config.action_text.format(limit=str(limit), field=self.field, key=key)
+            raise LimitExceeded(action=self.config.action, 
+                                code=self.config.action_code, 
+                                message=msg)
 
     def dump(self):
         print("Limits:")
         for key, limiter in self.counters.items():
             print(f"  {key}: {limiter}")
+            

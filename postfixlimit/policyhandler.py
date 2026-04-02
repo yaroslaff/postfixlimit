@@ -2,6 +2,7 @@ import socketserver
 import logging
 
 from .limiter import Limiter
+from .exceptions import LimitExceeded
 
 class PolicyHandler(socketserver.StreamRequestHandler):
     logger: logging.Logger = logging.getLogger("postfixlimit")
@@ -55,9 +56,10 @@ class PolicyHandler(socketserver.StreamRequestHandler):
 
         self.logger.debug(f"check_policy: sender={sender!r}, size={size}")
 
-        if self.limiter.check(sender):
+        try:
+            self.limiter.check(sender)
             return "DUNNO"
-
-        # not allowed
-        return "REJECT Too many emails sent, please try again later"
+        except LimitExceeded as e:
+            # not allowed
+            return e.postfix_response()
 
