@@ -73,7 +73,7 @@ class PolicyHandler(socketserver.StreamRequestHandler):
                 attrs[k] = v
                 
     def check_policy(self, attrs):
-        sender = attrs.get("sender", "")
+        sender = attrs.get(self.config.field, "")
         size = int(attrs.get("size", 0))
 
         self.logger.debug(f"check_policy: sender={sender!r}, size={size}")
