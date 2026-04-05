@@ -2,10 +2,20 @@
 Simple mail limiter for postfix (check_policy_service)
 
 ## Installation
-### Install package
+### TL;DR
 ~~~
-PIPX_HOME=/opt/pipx PIPX_BIN_DIR=/usr/local/bin pipx install https://github.com/yaroslaff/postfixlimit
+PIPX_HOME=/opt/pipx PIPX_BIN_DIR=/usr/local/bin pipx install git+https://github.com/yaroslaff/postfixlimit
+wget https://raw.githubusercontent.com/yaroslaff/postfixlimit/refs/heads/master/contrib/postfixlimit.service
+wget https://raw.githubusercontent.com/yaroslaff/postfixlimit/refs/heads/master/contrib/postfixlimit.conf
+
+cp postfixlimit.service /etc/systemd/system/
+systemctl daemon-reload
+
+cp postfixlimit.conf /etc/
 ~~~
+
+After this, edit `/etc/postfixlimit.conf`, maybe you want to change `field`, `default_limit` specific limits. Then start daemon: `systemcctl start postfixlimit`.
+
 
 ~~~
 # and same for clean uninstall (if you will ever need)
