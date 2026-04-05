@@ -57,7 +57,6 @@ def main():
     
 
     if args.reset:
-        print(f"Resetting counters for {args.reset}")
         limiter.reset(args.reset)
         limiter.dump()
         return

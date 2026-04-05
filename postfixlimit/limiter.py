@@ -65,12 +65,11 @@ class Limiter:
                 out.close()
     
     def reset(self, sender: str):
-        print("Resetting counter for", sender)
+        print("Resetting counters for", sender)
         
         if sender=='ALL':
             self.storage.reset()
             self.counters = {}
-            print("All counters reset")
             return
         
         cnt = self.counters.get(sender)
