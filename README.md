@@ -19,8 +19,11 @@ smtpd_recipient_restrictions =
 ~~~
 
 
+## Systemd unit file
+Copy [[contrib/postfixlimit.service]] as `/etc/systemd/system/postfixlimit.service`
+
 ## Example config file
-Example config file is in `contrib/postfixlimit.conf`, save it as `/etc/postfixlimit.conf`
+Example config file is in [contrib/postfixlimit.conf](contrib/postfixlimit.conf), save it as `/etc/postfixlimit.conf`
 ~~~
 # Main server options
 [server]
@@ -42,5 +45,8 @@ log_file = /var/log/postfixlimit/postfixlimit.log
 
 # Specific limits
 [limits]
-aaa@bbb.com = 1 / day
+aaa@example.com = 100 / day
 ~~~
+
+## Limits configuration
+Postfixlimit uses [limits](https://github.com/alisaifee/limits) package for this. Limits could be configured according to it's [documentation](https://limits.readthedocs.io/en/stable/quickstart.html#rate-limit-string-notation). Format is: `[count] [per|/] [n (optional)] [second|minute|hour|day|month|year]`.
