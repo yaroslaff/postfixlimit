@@ -3,7 +3,7 @@ import socketserver
 import time
 
 from .limiter import Limiter
-from .config import TomlConfig
+from .config import Config
 from .exceptions import LimitExceeded
 from .singleton import Singleton
 
@@ -15,7 +15,7 @@ class PolicyHandler(socketserver.StreamRequestHandler):
         cls.limiter = limiter
 
     @classmethod
-    def configure_config(cls, config: TomlConfig):
+    def configure_config(cls, config: Config):
         cls.config = config
 
     def setup(self):

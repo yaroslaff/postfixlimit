@@ -1,7 +1,7 @@
 import time
 
 from limits import storage, limits, strategies, parse
-from .config import TomlConfig
+from .config import Config
 from .exceptions import LimitExceeded
 
 NS='postfixlimit'

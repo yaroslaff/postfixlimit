@@ -2,7 +2,7 @@ import socketserver
 import argparse
 
 from ..policyhandler import PolicyHandler
-from ..config import TomlConfig 
+from ..config import Config 
 from ..limiter import Limiter
 
 def get_args():
@@ -26,7 +26,7 @@ def main():
 
 
     print(f"Loading config from {args.config}")
-    config = TomlConfig(args.config)
+    config = Config(args.config)
 
     if args.port is not None:
         config.port = args.port
