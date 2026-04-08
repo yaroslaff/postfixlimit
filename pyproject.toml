@@ -10,6 +10,7 @@ license = { file = "LICENSE" }
 dynamic = [ "version" ]
 keywords = [
     "postfix",
+    "postfixlimit",
     "email",
     "rate-limiting",
     "policy-service",
